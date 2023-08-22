@@ -1,65 +1,55 @@
 # MemFileCache
 
-A custom caching solution designed to replace `System.Web.HttpContext.Current.Cache` with enhanced support for multiple IIS pools.
+MemFileCache is a memory file caching system. This document explains how to use the main functionalities of MemFileCache, which includes methods: `Insert`, `Get`, `Remove`, and `Clear`.
 
-## Overview
+## Classes and Enums
 
-In environments that require multi-IIS pool support, the default `System.Web.HttpContext.Current.Cache` can be limiting. This project offers a robust and extensible solution to overcome these challenges, while providing a versatile locking mechanism suitable for all application needs.
+1. **CacheItem**:
+ - Represents an item in the cache with properties: `file`, `expiration`, and `totalSize`.
+  
+2. **SynchronizationMethod**:
+ - Represents the type of synchronization: `None`, `Mutex`, or `Monitor`.
+  
+3. **Global**:
+ - A global helper class with methods: `Start`, `End`, and other helper methods.
 
-## Getting Started
+4. **myMutexRec**:
+ - Represents a mutex record with properties: `mutex`, `locker`, and `ownedMutexes`.
+  
+5. **GlobalLock**:
+ - Provides methods for acquiring and releasing locks: `AcquireLock`, `ReleaseLock`, `ReleaseAllMutexes`, and `ExecuteWithLock`.
 
-- **Prerequisites**: Ensure you have .NET Framework installed, suitable for web application development.
+6. **MemFileCache**:
+ - Provides the core functionality of memory file caching: `Insert`, `Get`, `Remove`, and `Clear`.
 
-Navigate to the project directory and restore any dependencies if necessary.
+## Function Descriptions
 
-You're ready to start integrating GlobalLock and MemFileCache into your projects!
+### Insert
+- Adds a new item to the cache or updates an existing one.
+- Parameters:
+  - `key`: The key for the cache item.
+  - `values`: The list of values to store in the cache.
+  - `slidingExpirationMin`: The duration in minutes for which the item should remain in the cache.
+  - `lockKeyName`: The name of the lock key to synchronize access.
+- Returns: `True` if successful, `False` otherwise.
 
-## Classes Description
+### Get
+- Retrieves an item from the cache.
+- Parameters:
+  - `key`: The key for the cache item.
+  - `lockKeyName`: The name of the lock key to synchronize access.
+- Returns: The list of values if the key is found, `null` otherwise.
 
+### Remove
+- Removes an item from the cache.
+- Parameters:
+  - `key`: The key for the cache item.
+  - `lockKeyName`: The name of the lock key to synchronize access.
+- Returns: `True` if successful, `False` otherwise.
 
-GlobalLock: This class is at the heart of the system, providing a synchronization mechanism for managing concurrent access to shared resources. It was initially developed to support MemFileCache but was extended to cater to all application needs, especially those requiring cross-AppDomain synchronization.
+### Clear
+- Clears all items from the cache.
+  
+## Usage
 
-MemFileCache: A custom caching solution, leveraging memory-mapped files for efficient access and storage. It's optimized for environments with multiple IIS pools, ensuring consistent and reliable cache behavior.
-
-## Classes Description
-
-- **Enums**:
-- LockIndexApplication: Enumerates the different lock indices for the application.
-- SynchronizationMethod: Describes the various methods of synchronization available.
-
-- **GlobalLock**: This class is at the heart of the system, providing a synchronization mechanism for managing concurrent access to shared resources. It leverages both Mutexes and Monitors based on the situation, ensuring efficient cross-AppDomain synchronization.
-
-  The "Global\" prefix, used when creating named Mutexes, indicates that the Mutex is a global kernel object. This ensures the Mutex can be accessed by multiple AppDomains or even different processes, ensuring synchronization across different scopes.
-
-  The ExecuteWithLock function simplifies the act of acquiring a lock, running an action, and then releasing the lock. This reduces the chance of forgetting to release the lock.
-
-- **MemFileCache**: A custom caching solution, leveraging memory-mapped files for efficient access and storage. It's optimized for environments with multiple IIS pools, ensuring consistent and reliable cache behavior. The use of MemoryMappedFileSecurity ensures that the appropriate access rights are given to the file, ensuring smooth inter-process communication.
-
-## User Guide
-
-1. **Initializing the Cache**:
- - Use MemFileCache.Instance to access the cache instance.
- - Store or retrieve cache values using the provided methods.
-2. **Leveraging GlobalLock**:
- - When you need to ensure exclusive access to a resource, use the GlobalLock.ExecuteWithLock method.
- - Specify the lock index, the action you want to execute within the synchronized block, and provide a description of where the lock is being used.
- - Example: 
-   ```
-   GlobalLock.ExecuteWithLock(0, LockIndexApplication.MemoryFiles, "CacheUpdate", () => 
-   {
-       // Your cache update logic here
-       return true;
-   });
-   ```
-3. **Memory Management**:
- - The cache uses memory-mapped files for storage, ensuring efficient usage of system memory.
- - Regularly review the cache's size and contents to ensure optimal performance.
-4. **Handling AppDomain Recycles**:
- - Properly manage mutexes during AppDomain shutdown/startup sequences to prevent blocking other threads or AppDomains.
-
-
-## Contributing
-Contributions, enhancements, and bug-fixes are welcome! Open an issue on GitHub and submit a pull request for any feature or bug fix. Ensure you include a description of your changes.
-
-## License
-This project is open-source and free for use under the MIT License. You can freely use, modify, distribute, or sell it under the terms of the license.
+To use MemFileCache, instantiate an object of the `MemFileCache` class and use the aforementioned functions as per your requirements. Make sure to handle exceptions and concurrency appropriately.
